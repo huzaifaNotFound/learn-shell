@@ -1,14 +1,14 @@
-import Header from "./Header.jsx"
-import Footer from "./Footer.jsx"
+import Terminal from "./Terminal.jsx";
+import Sidebar from "./Sidebar.jsx";
 
 
 function App(){
 
     return(
-      <>
-      <Header/>
-      <Footer/>
-      </>
+        <div className="flex h-screen w-screen">
+          <Terminal/>
+          <Sidebar/>
+        </div>
     );
 }
 

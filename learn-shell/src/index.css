@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+
+@theme {
+  /* Backgrounds */
+  --color-bg-primary: #12161C; /* App background, terminal canvas */
+  --color-bg-surface: #1B212A; /* Sidebar / panels */
+  --color-bg-inset: #0D1116;   /* Terminal scrollback area */
+
+  /* Text */
+  --color-text-primary: #E8E3D8; /* Body text, terminal stdout */
+  --color-text-muted: #8A8F98;   /* Secondary labels, locked levels */
+
+  /* Accents */
+  --color-accent-amber: #E8A33D; /* Primary accent: cursor, prompt, active level, buttons */
+  --color-accent-teal: #4FA8A0;  /* Secondary accent: hints, info states */
+  --color-accent-success: #8FA876; /* Completed levels, passed challenges */
+  --color-accent-error: #D9634B;   /* Failed commands, validation errors */
+
+   /* Borders */
+  --color-border: #303741; /* Subtle borders/dividers */
+}
+
+body{
+    @apply bg-bg-primary 
+}
