@@ -1,26 +1,38 @@
 @import "tailwindcss";
-
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap");
 
 @theme {
   /* Backgrounds */
-  --color-bg-primary: #12161C; /* App background, terminal canvas */
-  --color-bg-surface: #1B212A; /* Sidebar / panels */
-  --color-bg-inset: #0D1116;   /* Terminal scrollback area */
+  --color-bg-primary: #12161c; /* App background, terminal canvas */
+  --color-bg-surface: #1b212a; /* Sidebar / panels */
+  --color-bg-inset: #0d1116; /* Terminal scrollback area */
 
   /* Text */
-  --color-text-primary: #E8E3D8; /* Body text, terminal stdout */
-  --color-text-muted: #8A8F98;   /* Secondary labels, locked levels */
+  --color-text-primary: #e8e3d8; /* Body text, terminal stdout */
+  --color-text-muted: #8a8f98; /* Secondary labels, locked levels */
 
   /* Accents */
-  --color-accent-amber: #E8A33D; /* Primary accent: cursor, prompt, active level, buttons */
-  --color-accent-teal: #4FA8A0;  /* Secondary accent: hints, info states */
-  --color-accent-success: #8FA876; /* Completed levels, passed challenges */
-  --color-accent-error: #D9634B;   /* Failed commands, validation errors */
+  --color-accent-amber: #e8a33d; /* Primary accent: cursor, prompt, active level, buttons */
+  --color-accent-teal: #4fa8a0; /* Secondary accent: hints, info states */
+  --color-accent-success: #8fa876; /* Completed levels, passed challenges */
+  --color-accent-error: #d9634b; /* Failed commands, validation errors */
 
-   /* Borders */
+  /* Borders */
   --color-border: #303741; /* Subtle borders/dividers */
+
+  /* Fonts */
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* Animations */
+  --animate-blink: blink 1s step-start infinite;
 }
 
-body{
-    @apply bg-bg-primary 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+body {
+  @apply bg-bg-primary;
 }

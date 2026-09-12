@@ -1,9 +1,9 @@
 function Terminal() {
   return (
     <div className="h-screen flex-1 px-5 py-8 ">
-      <div className="border border-border h-full w-full rounded-xl">
-        <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl">
-          <div className="h-full rounded-l-xl flex items-center pl-2">
+      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl">
+        <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center">
+          <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
             <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
               <g id="System / Terminal">
                 <path
@@ -16,9 +16,26 @@ function Terminal() {
                 />
               </g>
             </svg>
+            <span className="text-text-muted ml-2 font-mono">Terminal</span>
           </div>
+
+          <span className="text-text-muted ml-4 mb-1 font-mono text-[28px]">+</span>
+          <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">Bash (Ubuntu)</span>
         </div>
-        <div></div>
+
+        <div className="p-5 pl-6 text-accent-amber font-mono text-2xl tracking-wide font-thin">
+          <div>
+            Welcome to LearnShell! <br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
+            started. <br></br>
+            <br></br>
+          </div>
+
+          <div className="flex items-center">
+            <span className="mr-4 ">user@shellpath:~$ </span>
+            <div className="bg-accent-amber w-3 h-8 animate-blink"></div>
+          </div>
+
+        </div>
       </div>
     </div>
   );
