@@ -23,7 +23,7 @@ function Terminal() {
           <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">Bash (Ubuntu)</span>
         </div>
 
-        <div className="p-5 pl-6 text-accent-amber font-mono text-2xl tracking-wide font-thin">
+        <div className="p-5 pl-6 text-accent-amber font-mono text-2xl tracking-wide">
           <div>
             Welcome to LearnShell! <br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
             started. <br></br>
