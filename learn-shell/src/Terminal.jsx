@@ -14,7 +14,7 @@ function Terminal() {
 
   return (
     <div className="h-screen flex-1 px-5 py-8 max-w-3/4">
-      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl">
+      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl overflow-clip">
         <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center">
           <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
             <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
@@ -43,21 +43,20 @@ function Terminal() {
             <br></br>
           </div>
 
-          <div className="flex items-center">
-            <span className="mr-4 text-accent-amber">learnshell@shellpath:~$ </span>
-            <div className="flex items-center cursor-text font-mono text-text-primary" onClick={() => inputRef.current?.focus()}>
-              <span>{input}</span>
+          <div className="relative w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
+            <span className=" text-accent-amber">learnshell@shellpath:~$ </span>
+            <span className="cursor-text text-text-primary" onClick={() => inputRef.current?.focus()}>
+              {input}
+              <span className="inline-block w-3 h-8 align-middle bg-accent-amber animate-blink" />
+            </span>
 
-              <div className="w-3 h-8 bg-accent-amber animate-blink" />
-
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="absolute opacity-0"
-              />
-            </div>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="absolute opacity-0"
+            />
           </div>
         </div>
       </div>
