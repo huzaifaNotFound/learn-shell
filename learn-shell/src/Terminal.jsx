@@ -1,8 +1,19 @@
-function Terminal(props) {
-let name = props.isOnline ? props.name : "anonymous";
+import { useRef, useState } from "react";
+
+function Terminal() {
+  const [input, setInput] = useState("");
+
+  function handleKeyDown(e) {
+    if (e.key === "Enter") {
+      console.log(input);
+      setInput("");
+    }
+  }
+
+  const inputRef = useRef(null);
 
   return (
-    <div className="h-screen flex-1 px-5 py-8 ">
+    <div className="h-screen flex-1 px-5 py-8 max-w-3/4">
       <div id="terminalWindow" className="border border-border h-full w-full rounded-xl">
         <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center">
           <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
@@ -25,18 +36,29 @@ let name = props.isOnline ? props.name : "anonymous";
           <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">Bash (Ubuntu)</span>
         </div>
 
-        <div className="p-5 pl-6 text-accent-amber font-mono text-2xl tracking-wide">
-          <div>
-            Welcome to LearnShell {name.charAt(0).toUpperCase() + name.slice(1)}! <br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
+        <div className="p-5 pl-6 font-mono text-2xl tracking-wide">
+          <div className="text-accent-amber">
+            Welcome to LearnShell<br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
             started. <br></br>
             <br></br>
           </div>
 
           <div className="flex items-center">
-            <span className="mr-4 ">{name}@shellpath:~$ </span>
-            <div className="bg-accent-amber w-3 h-8 animate-blink"></div>
-          </div>
+            <span className="mr-4 text-accent-amber">learnshell@shellpath:~$ </span>
+            <div className="flex items-center cursor-text font-mono text-text-primary" onClick={() => inputRef.current?.focus()}>
+              <span>{input}</span>
 
+              <div className="w-3 h-8 bg-accent-amber animate-blink" />
+
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="absolute opacity-0"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
