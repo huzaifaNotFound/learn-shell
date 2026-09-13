@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { Check, ChevronUp, ChevronDown, Lock, Play } from "lucide-react";
 
 const sections = [
   {
@@ -57,8 +57,6 @@ const sections = [
   },
 ];
 
-
-
 function CourseSection({ section }) {
   const [open, setOpen] = useState(!section.locked);
 
@@ -70,18 +68,10 @@ function CourseSection({ section }) {
         className="w-full h-[68px] px-8 flex items-center text-left"
       >
         {/* Section number */}
-        <span className="w-12 shrink-0 font-mono text-[17px] text-text-primary">
-          {section.number}
-        </span>
+        <span className="w-12 shrink-0 font-mono text-[17px] text-text-primary">{section.number}</span>
 
         {/* Title */}
-        <span
-          className={`flex-1 font-mono text-[17px] ${
-            section.locked
-              ? "text-text-primary"
-              : "text-text-primary"
-          }`}
-        >
+        <span className={`flex-1 font-mono text-[17px] ${section.locked ? "text-text-primary" : "text-text-primary"}`}>
           {section.title}
         </span>
 
@@ -89,7 +79,7 @@ function CourseSection({ section }) {
         <div className="flex items-center gap-2">
           {section.locked ? (
             <>
-              <span className="text-text-muted text-sm">▢</span>
+              <Lock size={15} strokeWidth={1.8} className="text-text-muted" />
               <span className="text-text-muted text-sm">
                 {section.completed} / {section.total}
               </span>
@@ -100,9 +90,11 @@ function CourseSection({ section }) {
                 {section.completed} / {section.total}
               </span>
 
-              <span className="text-text-muted text-lg leading-none">
-                {open ? "⌃" : "⌄"}
-              </span>
+              {open ? (
+                <ChevronUp size={18} className="text-text-muted" />
+              ) : (
+                <ChevronDown size={18} className="text-text-muted" />
+              )}
             </>
           )}
         </div>
@@ -114,24 +106,18 @@ function CourseSection({ section }) {
             <div
               key={lesson.id}
               className={`mx-5 h-[43px] px-3 flex items-center rounded-md
-                ${
-                  lesson.active
-                    ? "bg-[#252d38] border border-[#303946]"
-                    : ""
-                }`}
+                ${lesson.active ? "bg-[#252d38] border border-[#303946]" : ""}`}
             >
               {/* Status */}
               <div className="w-10 shrink-0 flex justify-center">
                 {lesson.done ? (
                   <div className="w-[22px] h-[22px] rounded-full bg-[#a8cf91] flex items-center justify-center">
-                    <span className="text-[#182019] text-[14px] font-bold">
-                      ✓
-                    </span>
+                    <Check size={14} strokeWidth={3} className="text-[#182019]" />
                   </div>
                 ) : lesson.active ? (
                   <div className="flex items-center gap-[7px] text-[#9ec68b]">
-                    <span className="text-[15px]">▶</span>
-                    <span className="text-[15px]">▶</span>
+                    <Play size={12} fill="currentColor" />
+                    <Play size={12} fill="currentColor" />
                   </div>
                 ) : (
                   <div className="w-[21px] h-[21px] rounded-full border-2 border-[#7a838c]" />
@@ -139,14 +125,10 @@ function CourseSection({ section }) {
               </div>
 
               {/* Lesson ID */}
-              <span className="w-12 shrink-0 text-[14px] text-text-muted font-sans">
-                {lesson.id}
-              </span>
+              <span className="w-12 shrink-0 text-[14px] text-text-muted font-sans">{lesson.id}</span>
 
               {/* Lesson title */}
-              <span className="text-[15px] text-text-primary font-sans">
-                {lesson.title}
-              </span>
+              <span className="text-[15px] text-text-primary font-sans">{lesson.title}</span>
             </div>
           ))}
         </div>
@@ -155,27 +137,19 @@ function CourseSection({ section }) {
   );
 }
 
-
 export default function CourseSidebar() {
   return (
     <div className="h-screen w-1/3 min-w-[400px] bg-bg-surface border-l-2 border-border flex flex-col overflow-hidden">
-      
       {/* Header */}
       <div className="h-[102px] shrink-0 border-b-2 border-border w-full flex items-center justify-between px-8">
         <div className="flex flex-col gap-y-1">
-          <h2 className="text-text-primary font-sans text-[21px] font-medium tracking-wide">
-            Bash Fundamentals
-          </h2>
+          <h2 className="text-text-primary font-sans text-[21px] font-medium tracking-wide">Bash Fundamentals</h2>
 
-          <h3 className="text-text-muted font-sans text-[14px]">
-            Learn the command line. Build real skills.
-          </h3>
+          <h3 className="text-text-muted font-sans text-[14px]">Learn the command line. Build real skills.</h3>
         </div>
 
         <div className="flex flex-col items-end gap-2">
-          <span className="text-text-muted font-sans text-[14px]">
-            12% completed
-          </span>
+          <span className="text-text-muted font-sans text-[14px]">12% completed</span>
 
           <div className="w-[104px] h-[8px] bg-bg-inset/60 rounded-full overflow-hidden">
             <div className="h-full w-[12%] bg-[#a8cf91] rounded-full" />
@@ -185,26 +159,17 @@ export default function CourseSidebar() {
 
       <div className="flex-1 overflow-y-auto scrollbar-none">
         {sections.map((section) => (
-          <CourseSection
-            key={section.number}
-            section={section}
-          />
+          <CourseSection key={section.number} section={section} />
         ))}
 
         <div className="p-6">
           <div className="border border-border rounded-lg px-5 py-4">
-            <p className="font-mono text-[14px] text-text-primary">
-              “Small tools. Big possibilities.”
-            </p>
+            <p className="font-mono text-[14px] text-text-primary">“Small tools. Big possibilities.”</p>
 
-            <p className="mt-2 font-mono text-[12px] text-text-muted">
-              — The Unix Philosophy
-            </p>
+            <p className="mt-2 font-mono text-[12px] text-text-muted">— The Unix Philosophy</p>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-
