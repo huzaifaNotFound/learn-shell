@@ -65,13 +65,13 @@ function CourseSection({ section }) {
       <button
         onClick={() => !section.locked && setOpen(!open)}
         disabled={section.locked}
-        className="w-full h-[68px] px-8 flex items-center text-left"
+        className="w-full h-17 px-8 flex items-center text-left"
       >
         {/* Section number */}
-        <span className="w-12 shrink-0 font-mono text-[17px] text-text-primary">{section.number}</span>
+        <span className="w-12 shrink-0 font-mono text-base text-text-primary">{section.number}</span>
 
         {/* Title */}
-        <span className={`flex-1 font-mono text-[17px] ${section.locked ? "text-text-primary" : "text-text-primary"}`}>
+        <span className={`flex-1 font-mono text-base ${section.locked ? "text-text-primary" : "text-text-primary"}`}>
           {section.title}
         </span>
 
@@ -105,22 +105,22 @@ function CourseSection({ section }) {
           {section.lessons.map((lesson) => (
             <div
               key={lesson.id}
-              className={`mx-5 h-[43px] px-3 flex items-center rounded-md
-                ${lesson.active ? "bg-[#252d38] border border-[#303946]" : ""}`}
+              className={`mx-5 h-10.75 px-3 flex items-center rounded-md
+                ${lesson.active ? "bg-border/50 border border-border" : ""}`}
             >
               {/* Status */}
               <div className="w-10 shrink-0 flex justify-center">
                 {lesson.done ? (
-                  <div className="w-[22px] h-[22px] rounded-full bg-[#a8cf91] flex items-center justify-center">
-                    <Check size={14} strokeWidth={3} className="text-[#182019]" />
+                  <div className="w-5.5 h-5.5 rounded-full bg-accent-success flex items-center justify-center">
+                    <Check size={14} strokeWidth={3} className="text-bg-primary" />
                   </div>
                 ) : lesson.active ? (
-                  <div className="flex items-center gap-[7px] text-[#9ec68b]">
+                  <div className="flex items-center gap-1.75 text-accent-success">
                     <Play size={12} fill="currentColor" />
                     <Play size={12} fill="currentColor" />
                   </div>
                 ) : (
-                  <div className="w-[21px] h-[21px] rounded-full border-2 border-[#7a838c]" />
+                  <div className="w-5.25 h-5.25 rounded-full border-2 border-border" />
                 )}
               </div>
 
@@ -139,9 +139,9 @@ function CourseSection({ section }) {
 
 export default function CourseSidebar() {
   return (
-    <div className="h-screen w-1/3 min-w-[400px] bg-bg-surface border-l-2 border-border flex flex-col overflow-hidden">
+    <div className="h-screen w-1/3 min-w-100 bg-bg-surface border-l-2 border-border flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="h-[102px] shrink-0 border-b-2 border-border w-full flex items-center justify-between px-8">
+      <div className="h-25.5 shrink-0 border-b-2 border-border w-full flex items-center justify-between px-8">
         <div className="flex flex-col gap-y-1">
           <h2 className="text-text-primary font-sans text-[21px] font-medium tracking-wide">Bash Fundamentals</h2>
 
@@ -151,8 +151,8 @@ export default function CourseSidebar() {
         <div className="flex flex-col items-end gap-2">
           <span className="text-text-muted font-sans text-[14px]">12% completed</span>
 
-          <div className="w-[104px] h-[8px] bg-bg-inset/60 rounded-full overflow-hidden">
-            <div className="h-full w-[12%] bg-[#a8cf91] rounded-full" />
+          <div className="w-26 h-2 bg-bg-inset/60 rounded-full overflow-hidden">
+            <div className="h-full w-[12%] bg-accent-success rounded-full" />
           </div>
         </div>
       </div>
