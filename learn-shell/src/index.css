@@ -40,3 +40,10 @@ html {
 body {
   @apply bg-bg-primary;
 }
+
+/* This app is fully keyboard-driven now (Esc to switch between typing in
+   the terminal and navigating the sidebar), so the mouse pointer is hidden
+   everywhere — including over links, inputs, and buttons. */
+* {
+  cursor: none !important;
+}

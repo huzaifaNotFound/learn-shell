@@ -1,8 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import { createFilesystem, cwdToString } from "./engine/filesystem";
 import { run } from "./engine/parser-bash";
+import { useMode, toggleMode } from "./modeStore";
 
 function Terminal() {
+  const mode = useMode(); // "terminal" | "navigate"
+
   const [input, setInput] = useState("");
   const [fsState, setFsState] = useState(() => createFilesystem());
   const [history, setHistory] = useState([]); // past { prompt, command, output } entries
@@ -16,6 +19,11 @@ function Terminal() {
   const bottomRef = useRef(null);
 
   function handleKeyDown(e) {
+    // While navigating the sidebar, the terminal input is disabled (see
+    // below) so this normally won't even fire — this guard is just a
+    // belt-and-braces safeguard against stray key events.
+    if (mode !== "terminal") return;
+
     if (e.key === "Enter") {
       const { output, newState, clearScreen } = run(input, fsState);
 
@@ -67,6 +75,28 @@ function Terminal() {
     }
   }
 
+  // Esc toggles terminal <-> navigate mode. This listens on window rather
+  // than the input, because once we're in navigate mode the terminal input
+  // is disabled/blurred and would never see the keypress otherwise.
+  useEffect(() => {
+    function handleGlobalKeyDown(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        toggleMode();
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  // Reclaim focus (and let the caret start blinking again) whenever we come
+  // back to terminal mode.
+  useEffect(() => {
+    if (mode === "terminal") {
+      inputRef.current?.focus();
+    }
+  }, [mode]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
   }, [history]);
@@ -96,8 +126,10 @@ function Terminal() {
         </div>
 
         <div
-          className="p-5 pl-6 font-mono text-2xl tracking-wide overflow-y-auto flex-1"
-          onClick={() => inputRef.current?.focus()}
+          className={`p-5 pl-6 font-mono text-2xl tracking-wide overflow-y-auto flex-1 transition-opacity duration-150 ${
+            mode !== "terminal" ? "opacity-60" : ""
+          }`}
+          onClick={() => mode === "terminal" && inputRef.current?.focus()}
         >
           <div className="text-accent-amber">
             Welcome to LearnShell<br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
@@ -123,7 +155,9 @@ function Terminal() {
             <span className="mr-1 text-accent-amber">learnshell@shellpath:{cwdToString(fsState.cwd)}$ </span>
             <span className="cursor-text text-text-primary">
               {input}
-              <span className="inline-block w-3 h-8 align-middle bg-accent-amber animate-blink" />
+              {mode === "terminal" && (
+                <span className="inline-block w-3 h-8 align-middle bg-accent-amber animate-blink" />
+              )}
             </span>
 
             <input
@@ -131,6 +165,7 @@ function Terminal() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              disabled={mode !== "terminal"}
               className="absolute opacity-0"
               autoFocus
             />
@@ -143,4 +178,4 @@ function Terminal() {
   );
 }
 
-export default Terminal;  
+export default Terminal;
