@@ -1,21 +1,80 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { createFilesystem, cwdToString } from "./engine/filesystem";
+import { run } from "./engine/parser-bash";
 
 function Terminal() {
   const [input, setInput] = useState("");
+  const [fsState, setFsState] = useState(() => createFilesystem());
+  const [history, setHistory] = useState([]); // past { prompt, command, output } entries
+
+  // --- Command history recall (up/down arrows) ---
+  const [commandHistory, setCommandHistory] = useState([]); // past submitted command strings, oldest first
+  const [historyIndex, setHistoryIndex] = useState(null); // null = not browsing history right now
+  const [draft, setDraft] = useState(""); // what you were typing before you pressed ↑
+
+  const inputRef = useRef(null);
+  const bottomRef = useRef(null);
 
   function handleKeyDown(e) {
     if (e.key === "Enter") {
-      console.log(input);
+      const { output, newState, clearScreen } = run(input, fsState);
+
+      if (clearScreen) {
+        setHistory([]);
+      } else {
+        const promptAtRunTime = cwdToString(fsState.cwd);
+        setHistory((prev) => [...prev, { prompt: promptAtRunTime, command: input, output }]);
+      }
+
+      // Blank lines (just hitting Enter) don't get remembered — same as real bash.
+      if (input.trim() !== "") {
+        setCommandHistory((prev) => [...prev, input]);
+      }
+
+      setFsState(newState);
       setInput("");
+      setHistoryIndex(null);
+      setDraft("");
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault(); // stop the caret jumping in the (invisible) input
+      if (commandHistory.length === 0) return;
+
+      if (historyIndex === null) {
+        // First press: remember whatever was being typed so ↓ can restore it later.
+        setDraft(input);
+        const newIndex = commandHistory.length - 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex]);
+      } else if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex]);
+      }
+      // else: already at the oldest command — stop there, don't wrap around
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex === null) return; // not currently browsing — nothing to do
+
+      if (historyIndex < commandHistory.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex]);
+      } else {
+        // Moved past the newest command — hand control back to whatever was being typed.
+        setHistoryIndex(null);
+        setInput(draft);
+      }
     }
   }
 
-  const inputRef = useRef(null);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "nearest" });
+  }, [history]);
 
   return (
     <div className="h-screen flex-1 px-5 py-8 max-w-3/4">
-      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl overflow-clip">
-        <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center">
+      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl overflow-clip flex flex-col">
+        <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center shrink-0">
           <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
             <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
               <g id="System / Terminal">
@@ -36,16 +95,33 @@ function Terminal() {
           <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">Bash (Ubuntu)</span>
         </div>
 
-        <div className="p-5 pl-6 font-mono text-2xl tracking-wide">
+        <div
+          className="p-5 pl-6 font-mono text-2xl tracking-wide overflow-y-auto flex-1"
+          onClick={() => inputRef.current?.focus()}
+        >
           <div className="text-accent-amber">
             Welcome to LearnShell<br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
             started. <br></br>
             <br></br>
           </div>
 
+          {history.map((entry, i) => (
+            <div key={i}>
+              <div className="w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
+                <span className="mr-1 text-accent-amber">user@shellpath:{entry.prompt}$ </span>
+                <span className="text-text-primary">{entry.command}</span>
+              </div>
+              {entry.output !== "" && (
+                <div className="w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all text-text-primary">
+                  {entry.output}
+                </div>
+              )}
+            </div>
+          ))}
+
           <div className="relative w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
-            <span className=" text-accent-amber">learnshell@shellpath:~$ </span>
-            <span className="cursor-text text-text-primary" onClick={() => inputRef.current?.focus()}>
+            <span className="mr-1 text-accent-amber">learnshell@shellpath:{cwdToString(fsState.cwd)}$ </span>
+            <span className="cursor-text text-text-primary">
               {input}
               <span className="inline-block w-3 h-8 align-middle bg-accent-amber animate-blink" />
             </span>
@@ -56,12 +132,15 @@ function Terminal() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="absolute opacity-0"
+              autoFocus
             />
           </div>
+
+          <div ref={bottomRef} />
         </div>
       </div>
     </div>
   );
 }
 
-export default Terminal;
+export default Terminal;  

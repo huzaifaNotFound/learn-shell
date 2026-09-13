@@ -6,7 +6,7 @@ function App(){
 
     return(
         <div className="flex h-screen w-screen">
-          <Terminal isOnline={false} name="huzaifa"/>
+          <Terminal/>
           <Sidebar/>
         </div>
     );
