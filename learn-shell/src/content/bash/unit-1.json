@@ -1,0 +1,64 @@
+{
+  "unitNumber": "01",
+  "title": "Navigation & Orientation",
+  "description": "Learn how to find your way around the filesystem.",
+  "levels": [
+    {
+      "id": "1.1",
+      "title": "Where am I? — pwd",
+      "lesson": "Every command you run happens inside a directory — a folder on the filesystem. Before you can do anything useful, you need to know where you are.\n\n`pwd` stands for **print working directory**. It prints the full path of the directory you're currently inside. Run it any time you feel lost.",
+      "example": "$ pwd\n/home/user",
+      "challenge": {
+        "instruction": "Run `pwd` to see your current directory.",
+        "validate": { "type": "command", "expected": "pwd" }
+      }
+    },
+    {
+      "id": "1.2",
+      "title": "What's here? — ls",
+      "lesson": "`ls` lists the contents of a directory — the files and folders inside it.\n\nWith no arguments it shows what's in your **current** directory. You can also give it a path to peek into any other directory without moving there:\n\n```\nls /etc\n```\n\nItems shown are sorted alphabetically.",
+      "example": "$ ls\nDesktop  Documents  Downloads  projects",
+      "challenge": {
+        "instruction": "Run `ls` to list the contents of your current directory.",
+        "validate": { "type": "command", "expected": "ls" }
+      }
+    },
+    {
+      "id": "1.3",
+      "title": "Hidden files — ls -a",
+      "lesson": "Files and directories whose names start with `.` are **hidden** — `ls` skips them by default. Hidden files are typically configuration files you rarely need to touch directly (`.bashrc`, `.gitconfig`, etc.).\n\nThe `-a` flag tells `ls` to show **all** entries, including hidden ones.\n\n```\nls -a\n```\n\nYou'll also see `.` (the current directory itself) and `..` (its parent) — those are always present.",
+      "example": "$ ls -a\n.  ..  .bashrc  Desktop  Documents  Downloads  projects",
+      "challenge": {
+        "instruction": "Run `ls -a` to reveal hidden files in your current directory.",
+        "validate": { "type": "command", "expected": "ls -a" }
+      }
+    },
+    {
+      "id": "1.4",
+      "title": "Moving around — cd",
+      "lesson": "`cd` (**change directory**) moves you into a different directory.\n\nYou can use an **absolute path** (starting with `/`, always from the root) or a **relative path** (from wherever you are right now):\n\n```\ncd /home/user/Documents   # absolute — works from anywhere\ncd Documents              # relative — works if you're in /home/user\ncd ..                     # go up one level\ncd                        # no argument = go home (~)\n```",
+      "example": "$ cd Documents\n$ pwd\n/home/user/Documents",
+      "challenge": {
+        "instruction": "Navigate to `/home/user/Documents` using `cd`.",
+        "validate": { "type": "cwd", "path": "/home/user/Documents" }
+      }
+    },
+    {
+      "id": "1.5",
+      "title": "Checkpoint — Navigation",
+      "isCheckpoint": true,
+      "lesson": "Time to combine what you've learned. Checkpoints test several skills at once — there's no single right command, just a final state you need to reach.\n\nSkills covered: `cd`, `ls`, `pwd`.",
+      "example": "",
+      "challenge": {
+        "instruction": "Navigate to `/var/log`, then run `ls` to see what's there.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "cwd", "path": "/var/log" },
+            { "type": "command", "expected": "ls" }
+          ]
+        }
+      }
+    }
+  ]
+}

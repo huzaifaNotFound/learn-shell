@@ -1,0 +1,75 @@
+{
+  "unitNumber": "02",
+  "title": "File Operations",
+  "description": "Create, read, and delete files and directories.",
+  "levels": [
+    {
+      "id": "2.1",
+      "title": "Creating directories — mkdir",
+      "lesson": "`mkdir` (**make directory**) creates a new folder.\n\nYou can create a single directory or several at once by listing multiple names:\n\n```\nmkdir notes\nmkdir src tests docs\n```\n\nThe directory is created **inside your current directory** unless you specify an absolute or relative path.",
+      "example": "$ mkdir projects\n$ ls\nDesktop  Documents  Downloads  projects",
+      "challenge": {
+        "instruction": "Create a directory called `myapp` inside `/home/user/projects`.",
+        "validate": { "type": "exists", "path": "/home/user/projects/myapp", "nodeType": "dir" }
+      }
+    },
+    {
+      "id": "2.2",
+      "title": "Creating files — touch",
+      "lesson": "`touch` creates an **empty file** if it doesn't already exist. If it does exist, it updates the file's timestamp (which is where the name comes from).\n\nUseful for quickly creating placeholder files:\n\n```\ntouch README.md\ntouch index.html style.css app.js\n```",
+      "example": "$ touch README.md\n$ ls\nREADME.md  myapp",
+      "challenge": {
+        "instruction": "Create an empty file called `README.md` inside `/home/user/projects/myapp`.",
+        "validate": { "type": "exists", "path": "/home/user/projects/myapp/README.md", "nodeType": "file" }
+      }
+    },
+    {
+      "id": "2.3",
+      "title": "Reading files — cat",
+      "lesson": "`cat` (**concatenate**) prints a file's contents to the screen. Despite the name, its most common use is just reading a single file:\n\n```\ncat README.md\ncat /etc/hosts\n```\n\nYou can pass multiple files — `cat` prints them one after the other:\n\n```\ncat file1.txt file2.txt\n```",
+      "example": "$ cat notes.txt\nRemember to practice cd, ls, and pwd!",
+      "challenge": {
+        "instruction": "Read the contents of `notes.txt` in your home directory (`/home/user`).",
+        "validate": { "type": "command", "expected": "cat notes.txt", "cwd": "/home/user" }
+      }
+    },
+    {
+      "id": "2.4",
+      "title": "Deleting files — rm",
+      "lesson": "`rm` (**remove**) deletes files permanently. Unlike your desktop's Trash, there's no undo.\n\n```\nrm old-notes.txt\nrm file1.txt file2.txt   # multiple files at once\n```\n\n> **Be careful.** `rm` doesn't ask for confirmation by default. Once a file is gone, it's gone.",
+      "example": "$ rm old-notes.txt\n$ ls\nnotes.txt",
+      "challenge": {
+        "instruction": "Delete the file `error.log` inside `/var/log`.",
+        "validate": { "type": "not-exists", "path": "/var/log/error.log" }
+      }
+    },
+    {
+      "id": "2.5",
+      "title": "Deleting directories — rm -r",
+      "lesson": "Plain `rm` refuses to delete directories — it prints an error. To remove a directory **and everything inside it**, add the `-r` flag (recursive):\n\n```\nrm -r old-project\n```\n\nThe `-r` flag makes `rm` walk into subdirectories and delete each file before removing the directory itself.",
+      "example": "$ rm -r temp-dir\n$ ls\nnotes  projects",
+      "challenge": {
+        "instruction": "Delete the `Desktop` directory inside `/home/user` and everything in it.",
+        "validate": { "type": "not-exists", "path": "/home/user/Desktop" }
+      }
+    },
+    {
+      "id": "2.6",
+      "title": "Checkpoint — File Operations",
+      "isCheckpoint": true,
+      "lesson": "Time to put `mkdir`, `touch`, `cat`, and `rm` together in one workflow. Skills covered: `cd`, `mkdir`, `touch`, `cat`, `rm`.",
+      "example": "",
+      "challenge": {
+        "instruction": "Inside `/home/user/projects`, create a directory called `lab`. Inside `lab`, create a file called `plan.txt`. Then read the contents of `notes.txt` from your home directory.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "exists", "path": "/home/user/projects/lab", "nodeType": "dir" },
+            { "type": "exists", "path": "/home/user/projects/lab/plan.txt", "nodeType": "file" },
+            { "type": "command", "expected": "cat notes.txt", "cwd": "/home/user" }
+          ]
+        }
+      }
+    }
+  ]
+}

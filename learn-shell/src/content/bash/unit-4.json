@@ -1,0 +1,83 @@
+{
+  "unitNumber": "04",
+  "title": "Moving & Copying",
+  "description": "Copy, move, and rename files and directories.",
+  "levels": [
+    {
+      "id": "4.1",
+      "title": "Copying files — cp",
+      "lesson": "`cp` (**copy**) duplicates a file. The original stays untouched.\n\n```\ncp source.txt destination.txt   # copy in the same dir (new name)\ncp notes.txt Documents/         # copy INTO a directory\n```\n\nIf the destination is an existing **directory**, the file lands inside it with its original name. If the destination is a **path that doesn't exist yet**, the copy gets that name.",
+      "example": "$ cp notes.txt backup.txt\n$ ls\n.bashrc  Documents  Downloads  Desktop  notes.txt  backup.txt  projects",
+      "challenge": {
+        "instruction": "Copy `notes.txt` from your home directory into `Documents/` as `notes-backup.txt`.",
+        "validate": {
+          "type": "exists",
+          "path": "/home/user/Documents/notes-backup.txt",
+          "nodeType": "file"
+        }
+      }
+    },
+    {
+      "id": "4.2",
+      "title": "Copying directories — cp -r",
+      "lesson": "Plain `cp` refuses to copy directories. Add `-r` (recursive) and it copies the entire directory tree:\n\n```\ncp -r projects projects-backup\n```\n\nThe `-r` flag makes `cp` walk into subdirectories, copying each file, then each sub-directory.",
+      "example": "$ cp -r projects projects-backup\n$ ls\nDocuments  Downloads  Desktop  notes.txt  projects  projects-backup",
+      "challenge": {
+        "instruction": "Create a backup of your entire `projects` directory called `projects-backup` in your home directory.",
+        "validate": {
+          "type": "exists",
+          "path": "/home/user/projects-backup",
+          "nodeType": "dir"
+        }
+      }
+    },
+    {
+      "id": "4.3",
+      "title": "Moving files — mv",
+      "lesson": "`mv` (**move**) does two things with one command:\n\n1. **Move** a file or directory into a different location.\n2. **Rename** it — by \"moving\" it to a new name in the same directory.\n\n```\nmv report.txt Documents/          # move to different dir\nmv draft.txt final.txt            # rename in the same dir\nmv Downloads/ archive/            # rename a whole directory\n```\n\nUnlike `cp`, the original disappears — there's only ever one copy.",
+      "example": "$ mv notes.txt notes-old.txt\n$ ls\n.bashrc  Documents  Downloads  Desktop  notes-old.txt  projects",
+      "challenge": {
+        "instruction": "Rename the `Downloads` directory in your home directory to `downloads-archive`.",
+        "validate": {
+          "type": "exists",
+          "path": "/home/user/downloads-archive",
+          "nodeType": "dir"
+        }
+      }
+    },
+    {
+      "id": "4.4",
+      "title": "Moving to a different location — mv",
+      "lesson": "You can move a file across directories in a single `mv` command:\n\n```\nmv /home/user/notes.txt /home/user/Documents/\n```\n\nOr more conveniently with relative paths — just navigate to where you want to start and use `.` (here) and `..` (up one level):\n\n```\ncd /home/user\nmv notes.txt Documents/\n```",
+      "example": "$ mv notes.txt Documents/notes-moved.txt\n$ ls Documents\nnotes-moved.txt",
+      "challenge": {
+        "instruction": "Move `notes.txt` from `/home/user` into `Documents/` — it should end up at `/home/user/Documents/notes.txt`.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "exists", "path": "/home/user/Documents/notes.txt", "nodeType": "file" },
+            { "type": "not-exists", "path": "/home/user/notes.txt" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4.5",
+      "title": "Checkpoint — Moving & Copying",
+      "isCheckpoint": true,
+      "lesson": "Combine `cp`, `mv`, `mkdir`, and `rm` to reorganise a small file tree. Skills covered: `cp`, `cp -r`, `mv`, `mkdir`, `rm`.",
+      "example": "",
+      "challenge": {
+        "instruction": "Starting in `/home/user`: copy `notes.txt` into `Documents/notes-copy.txt`, then create a directory `archive` and move `Documents/notes-copy.txt` into it.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "exists", "path": "/home/user/Documents/notes-copy.txt", "nodeType": "file" },
+            { "type": "exists", "path": "/home/user/archive", "nodeType": "dir" },
+            { "type": "exists", "path": "/home/user/archive/notes-copy.txt", "nodeType": "file" }
+          ]
+        }
+      }
+    }
+  ]
+}

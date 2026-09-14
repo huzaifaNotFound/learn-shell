@@ -24,32 +24,40 @@ export function run(input, state) {
     return { output: '', newState: state };
   }
 
-  const [command, ...args] = trimmed.split(/\s+/);
+  // Quote-aware tokeniser so `find . -name '*.txt'` doesn't get mangled.
+  const args = tokenise(trimmed);
+  const [command, ...rest] = args;
 
   switch (command) {
     case 'pwd':
       return runPwd(state);
     case 'ls':
-      return runLs(args, state);
+      return runLs(rest, state);
     case 'cd':
-      return runCd(args, state);
+      return runCd(rest, state);
     case 'cat':
-      return runCat(args, state);
+      return runCat(rest, state);
     case 'mkdir':
-      return runMkdir(args, state);
+      return runMkdir(rest, state);
     case 'touch':
-      return runTouch(args, state);
+      return runTouch(rest, state);
     case 'rm':
-      return runRm(args, state);
+      return runRm(rest, state);
+    case 'cp':
+      return runCp(rest, state);
+    case 'mv':
+      return runMv(rest, state);
+    case 'find':
+      return runFind(rest, state);
+    case 'grep':
+      return runGrep(rest, state);
     case 'echo':
-      return runEcho(args, state);
+      return runEcho(rest, state);
     case 'whoami':
       return runWhoami(state);
+    case 'help':
+      return runHelp(state);
     case 'clear':
-      // Clearing the screen isn't a filesystem change — there's no output
-      // and no new state. It's a signal to whatever's rendering the
-      // history (the Terminal component) to wipe it. See the note where
-      // this is used in the UI for the small hookup that needs.
       return { output: '', newState: state, clearScreen: true };
     default:
       return {
@@ -57,6 +65,29 @@ export function run(input, state) {
         newState: state,
       };
   }
+}
+
+// Splits on whitespace while respecting single- and double-quoted tokens.
+// 'find . -name "*.txt"' → ['find', '.', '-name', '*.txt']
+function tokenise(input) {
+  const tokens = [];
+  let current = '';
+  let inSingle = false;
+  let inDouble = false;
+
+  for (const ch of input) {
+    if (ch === "'" && !inDouble) {
+      inSingle = !inSingle;
+    } else if (ch === '"' && !inSingle) {
+      inDouble = !inDouble;
+    } else if (ch === ' ' && !inSingle && !inDouble) {
+      if (current.length > 0) { tokens.push(current); current = ''; }
+    } else {
+      current += ch;
+    }
+  }
+  if (current.length > 0) tokens.push(current);
+  return tokens;
 }
 
 // Small helper: real coreutils commands (cat, mkdir, touch, rm...) tend to
@@ -257,3 +288,227 @@ function runEcho(args, state) {
 function runWhoami(state) {
   return { output: 'user', newState: state };
 }
+
+function runHelp(state) {
+  const cmds = [
+    'pwd      — print working directory',
+    'ls       — list directory contents  (ls -a for hidden files)',
+    'cd       — change directory         (cd .. to go up)',
+    'cat      — print file contents',
+    'mkdir    — create a directory',
+    'touch    — create an empty file',
+    'rm       — remove a file            (rm -r for directories)',
+    'cp       — copy a file              (cp -r for directories)',
+    'mv       — move or rename a file',
+    'find     — search for files         (find . -name "*.txt")',
+    'grep     — search inside files      (grep pattern file)',
+    'echo     — print text',
+    'whoami   — print current user',
+    'clear    — clear the screen',
+  ];
+  return { output: cmds.join('\n'), newState: state };
+}
+
+// ─── cp ───────────────────────────────────────────────────────────────────
+
+function runCp(args, state) {
+  const recursive = args.some((a) => a === '-r' || a === '-R');
+  const nonFlags = args.filter((a) => !a.startsWith('-'));
+
+  if (nonFlags.length < 2) {
+    return { output: missingOperand('cp', 'missing file operand'), newState: state };
+  }
+
+  const [src, dst] = nonFlags;
+  const srcSegments = resolvePath(state, src);
+  const srcNode = getNodeAt(state, srcSegments);
+
+  if (!srcNode) {
+    return { output: `cp: cannot stat '${src}': No such file or directory`, newState: state };
+  }
+  if (srcNode.type === 'dir' && !recursive) {
+    return { output: `cp: -r not specified; omitting directory '${src}'`, newState: state };
+  }
+
+  const dstSegments = resolvePath(state, dst);
+  const dstNode = getNodeAt(state, dstSegments);
+
+  // If destination is an existing directory, copy the source inside it.
+  let finalSegments = dstSegments;
+  if (dstNode?.type === 'dir') {
+    finalSegments = [...dstSegments, srcSegments.at(-1)];
+  }
+
+  const { parentSegments } = splitParent(finalSegments);
+  const parentNode = getNodeAt(state, parentSegments);
+  if (!parentNode || parentNode.type !== 'dir') {
+    return { output: `cp: cannot create '${dst}': No such file or directory`, newState: state };
+  }
+
+  return { output: '', newState: setNodeAt(state, finalSegments, deepCloneNode(srcNode)) };
+}
+
+function deepCloneNode(node) {
+  if (node.type === 'file') return { ...node };
+  return {
+    type: 'dir',
+    children: Object.fromEntries(
+      Object.entries(node.children).map(([name, child]) => [name, deepCloneNode(child)])
+    ),
+  };
+}
+
+// ─── mv ───────────────────────────────────────────────────────────────────
+
+function runMv(args, state) {
+  const nonFlags = args.filter((a) => !a.startsWith('-'));
+
+  if (nonFlags.length < 2) {
+    return { output: missingOperand('mv', 'missing file operand'), newState: state };
+  }
+
+  const [src, dst] = nonFlags;
+  const srcSegments = resolvePath(state, src);
+  const srcNode = getNodeAt(state, srcSegments);
+
+  if (!srcNode) {
+    return { output: `mv: cannot stat '${src}': No such file or directory`, newState: state };
+  }
+
+  const dstSegments = resolvePath(state, dst);
+  const dstNode = getNodeAt(state, dstSegments);
+
+  // If destination is an existing directory, move source INTO it.
+  let finalSegments = dstSegments;
+  if (dstNode?.type === 'dir') {
+    finalSegments = [...dstSegments, srcSegments.at(-1)];
+  }
+
+  // Guard: can't move a directory into itself.
+  const srcPath = '/' + srcSegments.join('/');
+  const dstPath = '/' + finalSegments.join('/');
+  if (dstPath === srcPath || dstPath.startsWith(srcPath + '/')) {
+    return { output: `mv: cannot move '${src}' to a subdirectory of itself`, newState: state };
+  }
+
+  const { parentSegments } = splitParent(finalSegments);
+  const parentNode = getNodeAt(state, parentSegments);
+  if (!parentNode || parentNode.type !== 'dir') {
+    return { output: `mv: cannot move '${src}' to '${dst}': No such file or directory`, newState: state };
+  }
+
+  let newState = setNodeAt(state, finalSegments, srcNode);
+  newState = removeNodeAt(newState, srcSegments);
+  return { output: '', newState };
+}
+
+// ─── find ─────────────────────────────────────────────────────────────────
+
+function runFind(args, state) {
+  // find [startPath] [-name glob] [-type f|d]
+  // Identify named-flag values first so they aren't treated as paths.
+  const namedFlagValues = new Set();
+  const flagsWithArgs = ['-name', '-type'];
+  flagsWithArgs.forEach((flag) => {
+    const idx = args.indexOf(flag);
+    if (idx !== -1 && args[idx + 1]) namedFlagValues.add(args[idx + 1]);
+  });
+
+  const paths = args.filter((a) => !a.startsWith('-') && !namedFlagValues.has(a));
+  const startPath = paths[0] ?? '.';
+
+  const nameIdx = args.indexOf('-name');
+  const nameGlob = nameIdx !== -1 ? args[nameIdx + 1] : null;
+  const typeIdx = args.indexOf('-type');
+  const typeFilter = typeIdx !== -1 ? args[typeIdx + 1] : null; // 'f' or 'd'
+
+  const startSegments = resolvePath(state, startPath);
+  const startNode = getNodeAt(state, startSegments);
+
+  if (!startNode) {
+    return { output: `find: '${startPath}': No such file or directory`, newState: state };
+  }
+
+  const results = [];
+  const base = startSegments.length ? '/' + startSegments.join('/') : '/';
+
+  function walk(node, currentPath) {
+    const name = currentPath.split('/').filter(Boolean).at(-1) ?? '/';
+
+    // Type filter
+    const typeOk = !typeFilter || (typeFilter === 'f' && node.type === 'file') || (typeFilter === 'd' && node.type === 'dir');
+    // Name glob filter
+    const nameOk = !nameGlob || globMatch(name, nameGlob);
+
+    if (typeOk && nameOk) results.push(currentPath || '/');
+
+    if (node.type === 'dir') {
+      for (const [childName, childNode] of Object.entries(node.children)) {
+        walk(childNode, (currentPath === '/' ? '' : currentPath) + '/' + childName);
+      }
+    }
+  }
+
+  walk(startNode, base);
+  return { output: results.join('\n'), newState: state };
+}
+
+// Converts a simple glob pattern (* = any chars, ? = one char) to a regex.
+function globMatch(name, pattern) {
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&') // escape regex specials
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+  return new RegExp(`^${escaped}$`).test(name);
+}
+
+// ─── grep ─────────────────────────────────────────────────────────────────
+
+function runGrep(args, state) {
+  const recursive = args.some((a) => a === '-r' || a === '-R');
+  const nonFlags = args.filter((a) => !a.startsWith('-'));
+
+  if (nonFlags.length === 0) {
+    return { output: 'usage: grep pattern [file ...]', newState: state };
+  }
+  if (nonFlags.length === 1 && !recursive) {
+    return { output: missingOperand('grep', 'missing file operand'), newState: state };
+  }
+
+  const pattern = nonFlags[0];
+  const targets = nonFlags.slice(1);
+  const multiFile = targets.length > 1 || recursive;
+  const lines = [];
+
+  function searchFile(filePath, fileNode) {
+    const fileLines = fileNode.content.split('\n');
+    fileLines.forEach((line) => {
+      if (line.includes(pattern)) {
+        lines.push(multiFile ? `${filePath}: ${line}` : line);
+      }
+    });
+  }
+
+  function searchDir(dirPath, dirNode) {
+    for (const [name, child] of Object.entries(dirNode.children)) {
+      const childPath = dirPath + '/' + name;
+      if (child.type === 'file') searchFile(childPath, child);
+      else if (child.type === 'dir') searchDir(childPath, child);
+    }
+  }
+
+  for (const target of targets) {
+    const segments = resolvePath(state, target);
+    const node = getNodeAt(state, segments);
+    if (!node) {
+      lines.push(`grep: ${target}: No such file or directory`);
+    } else if (node.type === 'dir') {
+      if (recursive) searchDir('/' + segments.join('/'), node);
+      else lines.push(`grep: ${target}: Is a directory`);
+    } else {
+      searchFile(target, node);
+    }
+  }
+
+  return { output: lines.join('\n'), newState: state };
+}

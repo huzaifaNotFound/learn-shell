@@ -2,26 +2,88 @@ import { useRef, useState, useEffect } from "react";
 import { createFilesystem, cwdToString } from "./engine/filesystem";
 import { run } from "./engine/parser-bash";
 import { useMode, toggleMode } from "./modeStore";
+import { useCourseState, getActiveLevel, markLessonDone } from "./store/courseStore";
+import { checkChallenge } from "./engine/validator";
+
+// ─── Lesson Banner ────────────────────────────────────────────────────────────
+// Shown above the prompt line when a lesson is active. Keyboard shortcut `?`
+// toggles it open/closed without losing the current lesson selection.
+
+function LessonBanner({ level, visible }) {
+  if (!level || !visible) return null;
+
+  return (
+    <div className="mx-1 mb-3 border border-border rounded-lg overflow-hidden text-sm font-sans">
+      {/* Banner header row */}
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-bg-surface border-b border-border">
+        {level.isCheckpoint ? (
+          <span className="text-accent-amber font-mono text-xs tracking-widest uppercase">
+            ✦ Checkpoint
+          </span>
+        ) : (
+          <span className="text-accent-teal font-mono text-xs tracking-widest uppercase">
+            Lesson {level.id}
+          </span>
+        )}
+        <span className="text-text-primary font-sans font-medium">{level.title}</span>
+        <span className="ml-auto text-text-muted text-xs font-mono">? to hide</span>
+      </div>
+
+      {/* Lesson prose */}
+      <div className="px-4 pt-3 pb-1 text-text-muted leading-relaxed whitespace-pre-wrap">
+        {level.lesson}
+      </div>
+
+      {/* Example block */}
+      {level.example && level.example.trim() !== "" && (
+        <div className="mx-4 mb-3 mt-2 px-3 py-2 bg-bg-inset rounded font-mono text-xs text-accent-amber whitespace-pre">
+          {level.example}
+        </div>
+      )}
+
+      {/* Challenge strip */}
+      <div className="flex items-start gap-3 px-4 py-3 bg-bg-surface/60 border-t border-border">
+        <span className="shrink-0 text-accent-amber font-mono text-xs uppercase tracking-widest pt-0.5">
+          Challenge
+        </span>
+        <span className="text-text-primary leading-relaxed">
+          {level.challenge?.instruction}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Terminal ─────────────────────────────────────────────────────────────────
 
 function Terminal() {
-  const mode = useMode(); // "terminal" | "navigate"
+  const mode = useMode();
+  const courseState = useCourseState();
+  const activeLevel = getActiveLevel(courseState);
 
+  const [bannerVisible, setBannerVisible] = useState(true);
   const [input, setInput] = useState("");
   const [fsState, setFsState] = useState(() => createFilesystem());
   const [history, setHistory] = useState([]); // past { prompt, command, output } entries
+  const [sequenceStep, setSequenceStep] = useState(0);
 
-  // --- Command history recall (up/down arrows) ---
-  const [commandHistory, setCommandHistory] = useState([]); // past submitted command strings, oldest first
-  const [historyIndex, setHistoryIndex] = useState(null); // null = not browsing history right now
-  const [draft, setDraft] = useState(""); // what you were typing before you pressed ↑
+  // Command-history recall (↑ / ↓)
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(null);
+  const [draft, setDraft] = useState("");
 
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
 
+  // Show the banner again whenever a new lesson is selected.
+  useEffect(() => {
+    if (activeLevel) {
+      setBannerVisible(true);
+      setSequenceStep(0);
+    }
+  }, [activeLevel?.id]);
+
   function handleKeyDown(e) {
-    // While navigating the sidebar, the terminal input is disabled (see
-    // below) so this normally won't even fire — this guard is just a
-    // belt-and-braces safeguard against stray key events.
     if (mode !== "terminal") return;
 
     if (e.key === "Enter") {
@@ -34,21 +96,31 @@ function Terminal() {
         setHistory((prev) => [...prev, { prompt: promptAtRunTime, command: input, output }]);
       }
 
-      // Blank lines (just hitting Enter) don't get remembered — same as real bash.
       if (input.trim() !== "") {
         setCommandHistory((prev) => [...prev, input]);
       }
 
       setFsState(newState);
+
+      // Validate challenge
+      const valResult = checkChallenge(input, newState, activeLevel, sequenceStep);
+      setSequenceStep(valResult.nextStep);
+
+      if (valResult.passed && activeLevel) {
+        const { activeLesson } = courseState;
+        if (activeLesson) {
+          markLessonDone(activeLesson.unitIndex, activeLesson.levelIndex);
+        }
+      }
+
       setInput("");
       setHistoryIndex(null);
       setDraft("");
     } else if (e.key === "ArrowUp") {
-      e.preventDefault(); // stop the caret jumping in the (invisible) input
+      e.preventDefault();
       if (commandHistory.length === 0) return;
 
       if (historyIndex === null) {
-        // First press: remember whatever was being typed so ↓ can restore it later.
         setDraft(input);
         const newIndex = commandHistory.length - 1;
         setHistoryIndex(newIndex);
@@ -58,55 +130,72 @@ function Terminal() {
         setHistoryIndex(newIndex);
         setInput(commandHistory[newIndex]);
       }
-      // else: already at the oldest command — stop there, don't wrap around
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (historyIndex === null) return; // not currently browsing — nothing to do
+      if (historyIndex === null) return;
 
       if (historyIndex < commandHistory.length - 1) {
         const newIndex = historyIndex + 1;
         setHistoryIndex(newIndex);
         setInput(commandHistory[newIndex]);
       } else {
-        // Moved past the newest command — hand control back to whatever was being typed.
         setHistoryIndex(null);
         setInput(draft);
       }
     }
   }
 
-  // Esc toggles terminal <-> navigate mode. This listens on window rather
-  // than the input, because once we're in navigate mode the terminal input
-  // is disabled/blurred and would never see the keypress otherwise.
+  // Esc toggles terminal ↔ navigate mode (global — fires even when input is blurred).
   useEffect(() => {
     function handleGlobalKeyDown(e) {
       if (e.key === "Escape") {
         e.preventDefault();
         toggleMode();
       }
+      // `?` toggles the lesson banner — only when the user is NOT actively
+      // typing into the hidden input (to avoid eating the ? character mid-command).
+      if (
+        e.key === "?" &&
+        mode === "terminal" &&
+        activeLevel &&
+        document.activeElement !== inputRef.current
+      ) {
+        e.preventDefault();
+        setBannerVisible((v) => !v);
+      }
     }
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, []);
+  }, [mode, activeLevel]);
 
-  // Reclaim focus (and let the caret start blinking again) whenever we come
-  // back to terminal mode.
+  // Re-focus the input whenever we return to terminal mode.
   useEffect(() => {
     if (mode === "terminal") {
       inputRef.current?.focus();
     }
   }, [mode]);
 
+  // Auto-scroll to the bottom when history grows.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
   }, [history]);
 
   return (
     <div className="h-screen flex-1 px-5 py-8 max-w-3/4">
-      <div id="terminalWindow" className="border border-border h-full w-full rounded-xl overflow-clip flex flex-col">
+      <div
+        id="terminalWindow"
+        className="border border-border h-full w-full rounded-xl overflow-clip flex flex-col"
+      >
+        {/* Top bar */}
         <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center shrink-0">
           <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
-            <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30px"
+              height="30px"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
               <g id="System / Terminal">
                 <path
                   id="Vector"
@@ -121,26 +210,41 @@ function Terminal() {
             <span className="text-text-muted ml-2 font-mono">Terminal</span>
           </div>
 
-          <span className="text-text-muted ml-4 mb-1 font-mono text-[28px]">+</span>
-          <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">Bash (Ubuntu)</span>
+          <span className="text-text-muted ml-auto mr-5 font-mono text-[18px]">
+            Bash (Ubuntu)
+          </span>
         </div>
 
+        {/* Scrollback + prompt area */}
         <div
           className={`p-5 pl-6 font-mono text-2xl tracking-wide overflow-y-auto flex-1 transition-opacity duration-150 ${
             mode !== "terminal" ? "opacity-60" : ""
           }`}
           onClick={() => mode === "terminal" && inputRef.current?.focus()}
         >
-          <div className="text-accent-amber">
-            Welcome to LearnShell<br></br>A hands on way to master the command-line. <br></br>Type 'help' to get
-            started. <br></br>
-            <br></br>
-          </div>
+          {/* Welcome message — shown only when no lesson is active */}
+          {!activeLevel && (
+            <div className="text-accent-amber mb-6 whitespace-pre">
+{`    __                          _____ __         ____
+   / /   ___  ____ __________  / ___// /_  ___  / / /
+  / /   / _ \\/ __ \`/ ___/ __ \\ \\__ \\/ __ \\/ _ \\/ / / 
+ / /___/  __/ /_/ / /  / / / /___/ / / / /  __/ / /  
+/_____/\\___/\\__,_/_/  /_/ /_//____/_/ /_/\\___/_/_/   `}
+              <br /><br />
+              Welcome to Learn Shell. A hands-on way to master the command-line.
+              <br />
+              Press <span className="underline">Esc</span> to navigate to a lesson, or type freely.
+            </div>
+          )}
 
+
+          {/* Command history */}
           {history.map((entry, i) => (
             <div key={i}>
               <div className="w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
-                <span className="mr-1 text-accent-amber">user@shellpath:{entry.prompt}$ </span>
+                <span className="mr-1 text-accent-amber">
+                  user@shellpath:{entry.prompt}${" "}
+                </span>
                 <span className="text-text-primary">{entry.command}</span>
               </div>
               {entry.output !== "" && (
@@ -151,8 +255,14 @@ function Terminal() {
             </div>
           ))}
 
+          {/* Lesson banner — sits between history and the live prompt */}
+          <LessonBanner level={activeLevel} visible={bannerVisible} />
+
+          {/* Live prompt */}
           <div className="relative w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
-            <span className="mr-1 text-accent-amber">learnshell@shellpath:{cwdToString(fsState.cwd)}$ </span>
+            <span className="mr-1 text-accent-amber">
+              learnshell@shellpath:{cwdToString(fsState.cwd)}${" "}
+            </span>
             <span className="cursor-text text-text-primary">
               {input}
               {mode === "terminal" && (

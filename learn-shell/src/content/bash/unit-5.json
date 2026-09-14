@@ -1,0 +1,77 @@
+{
+  "unitNumber": "05",
+  "title": "Searching",
+  "description": "Find files by name and search inside file contents.",
+  "locked": true,
+  "levels": [
+    {
+      "id": "5.1",
+      "title": "Finding files — find",
+      "lesson": "`find` searches the filesystem for files and directories. Its basic form walks a directory tree and prints every path it finds:\n\n```\nfind /home/user        # list everything under /home/user\nfind .                 # list everything in the current directory\n```\n\n`find` descends into sub-directories automatically — you don't need any flags for that.",
+      "example": "$ find /home/user\n/home/user\n/home/user/projects\n/home/user/Documents\n/home/user/Downloads\n/home/user/Desktop\n/home/user/notes.txt",
+      "challenge": {
+        "instruction": "List every file and directory under `/home/user` using `find`.",
+        "validate": { "type": "command", "expected": "find /home/user" }
+      }
+    },
+    {
+      "id": "5.2",
+      "title": "Searching by name — find -name",
+      "lesson": "Add `-name pattern` to filter by filename. Patterns use `*` as a wildcard:\n\n```\nfind /home/user -name '*.txt'   # every .txt file\nfind . -name 'README*'          # files starting with README\nfind / -name 'hosts'            # exact match anywhere\n```\n\nAlways quote the pattern — the shell would otherwise expand `*` before `find` even sees it.",
+      "example": "$ find /home/user -name '*.txt'\n/home/user/notes.txt",
+      "challenge": {
+        "instruction": "Find all `.txt` files anywhere under `/home/user`.",
+        "validate": {
+          "type": "command",
+          "expected": ["find /home/user -name '*.txt'", "find /home/user -name \"*.txt\""]
+        }
+      }
+    },
+    {
+      "id": "5.3",
+      "title": "Searching inside files — grep",
+      "lesson": "`grep` searches for a **pattern** (text) inside a file and prints every matching line:\n\n```\ngrep 'error' /var/log/system.log\ngrep 'localhost' /etc/hosts\n```\n\nThe first argument is always the pattern; everything after it is a file (or list of files).\n\nWhen multiple files are given, `grep` prefixes each output line with the filename so you know where the match came from.",
+      "example": "$ grep 'localhost' /etc/hosts\n127.0.0.1 localhost",
+      "challenge": {
+        "instruction": "Search for the word `localhost` in `/etc/hosts`.",
+        "validate": { "type": "command", "expected": "grep 'localhost' /etc/hosts" }
+      }
+    },
+    {
+      "id": "5.4",
+      "title": "Searching multiple files — grep",
+      "lesson": "Pass several files to `grep` at once and it searches them all:\n\n```\ngrep 'boot' /var/log/system.log /var/log/error.log\n```\n\nWhen multiple files are given, `grep` prefixes each match with its filename:\n```\n/var/log/system.log: boot ok\n```\n\nThis is useful for checking the same pattern across many log files at once.",
+      "example": "$ grep 'boot' /var/log/system.log /var/log/error.log\n/var/log/system.log: boot ok",
+      "challenge": {
+        "instruction": "Search for `boot` across both `/var/log/system.log` and `/var/log/error.log`.",
+        "validate": {
+          "type": "command",
+          "expected": ["grep 'boot' /var/log/system.log /var/log/error.log", "grep boot /var/log/system.log /var/log/error.log"]
+        }
+      }
+    },
+    {
+      "id": "5.5",
+      "title": "Checkpoint — Searching",
+      "isCheckpoint": true,
+      "lesson": "Combine `find` and `grep` to locate and inspect files. Skills covered: `find`, `find -name`, `grep`.",
+      "example": "",
+      "challenge": {
+        "instruction": "First, find all `.txt` files under `/home/user`. Then, search for the word `practice` inside `/home/user/notes.txt`.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            {
+              "type": "command",
+              "expected": ["find /home/user -name '*.txt'", "find /home/user -name \"*.txt\""]
+            },
+            {
+              "type": "command",
+              "expected": ["grep 'practice' /home/user/notes.txt", "grep practice /home/user/notes.txt", "grep 'practice' notes.txt", "grep practice notes.txt"]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

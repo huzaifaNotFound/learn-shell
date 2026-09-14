@@ -1,0 +1,66 @@
+{
+  "unitNumber": "03",
+  "title": "Text & Output",
+  "description": "Print text, inspect the system, and start composing commands.",
+  "locked": true,
+  "levels": [
+    {
+      "id": "3.1",
+      "title": "Printing text — echo",
+      "lesson": "`echo` prints its arguments back to the screen. It's the simplest way to produce output in bash:\n\n```\necho Hello, world!\necho \"Paths with spaces need quotes\"\n```\n\nYou'll use it constantly in scripts to display messages, debug values, and write content into files (that comes later).",
+      "example": "$ echo Hello, world!\nHello, world!",
+      "challenge": {
+        "instruction": "Print the message `Hello, shell!` using `echo`.",
+        "validate": { "type": "command", "expected": "echo Hello, shell!" }
+      }
+    },
+    {
+      "id": "3.2",
+      "title": "Who am I? — whoami",
+      "lesson": "`whoami` prints the name of the **current user** — the account you're logged in as.\n\nOn a shared server this matters a lot: it tells you whose permissions you have, and whether you need `sudo` (run as administrator) for a given task.\n\nOn this system, you're always `user`.",
+      "example": "$ whoami\nuser",
+      "challenge": {
+        "instruction": "Run `whoami` to confirm your username.",
+        "validate": { "type": "command", "expected": "whoami" }
+      }
+    },
+    {
+      "id": "3.3",
+      "title": "Reading multiple files — cat",
+      "lesson": "You've already used `cat` on one file. Pass it several and it prints them **back to back**, in order:\n\n```\ncat /etc/hostname /etc/hosts\n```\n\nThis is where `cat` earns its \"concatenate\" name — it chains files together in one stream of output.",
+      "example": "$ cat /etc/hostname /etc/hosts\nshellpath\n127.0.0.1 localhost",
+      "challenge": {
+        "instruction": "Print both `/etc/hostname` and `/etc/hosts` in a single `cat` command.",
+        "validate": { "type": "command", "expected": "cat /etc/hostname /etc/hosts" }
+      }
+    },
+    {
+      "id": "3.4",
+      "title": "Combining commands — pipes (preview)",
+      "locked": true,
+      "lesson": "Pipes (`|`) let you feed the output of one command directly into another. This is one of the most powerful ideas in the shell — instead of one command that does everything, you chain small commands that each do one thing well.\n\n```\nls | sort\necho \"hello\" | cat\n```\n\nFull pipe support is coming in the next unit. This level is a preview — read the lesson and move on.",
+      "example": "$ ls /etc | sort\nhostname\nhosts",
+      "challenge": {
+        "instruction": "Nothing to type yet — this concept is introduced in the next unit. Press Esc to navigate to the checkpoint.",
+        "validate": { "type": "none" }
+      }
+    },
+    {
+      "id": "3.5",
+      "title": "Checkpoint — Text & Output",
+      "isCheckpoint": true,
+      "lesson": "Combine echo, whoami, and cat to complete this checkpoint. Skills covered: `echo`, `whoami`, `cat` (multi-file).",
+      "example": "",
+      "challenge": {
+        "instruction": "Run `whoami`, then print the contents of both `/etc/hostname` and `/etc/hosts` in one `cat` command.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "command", "expected": "whoami" },
+            { "type": "command", "expected": "cat /etc/hostname /etc/hosts" }
+          ]
+        }
+      }
+    }
+  ]
+}

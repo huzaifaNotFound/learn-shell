@@ -1,0 +1,78 @@
+{
+  "unitNumber": "06",
+  "title": "The Full Workflow",
+  "description": "Real-world tasks combining everything you've learned.",
+  "locked": true,
+  "levels": [
+    {
+      "id": "6.1",
+      "title": "Plan before you type",
+      "lesson": "Real shell work rarely involves a single command. A typical task looks like this:\n\n1. Navigate to the right place — `cd`\n2. Check what's there — `ls`, `find`\n3. Create the structure you need — `mkdir`, `touch`\n4. Read or inspect files — `cat`, `grep`\n5. Reorganise — `cp`, `mv`, `rm`\n\nThe skill isn't memorising flags — it's knowing *which* command belongs at each step. This unit strings it all together with realistic tasks.",
+      "example": "$ cd /home/user/projects\n$ ls\nmyapp\n$ mkdir -p myapp/src myapp/tests",
+      "challenge": {
+        "instruction": "Navigate to `/home/user/projects`, then create two directories inside `myapp`: `src` and `tests`.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "cwd", "path": "/home/user/projects" },
+            { "type": "exists", "path": "/home/user/projects/myapp/src", "nodeType": "dir" },
+            { "type": "exists", "path": "/home/user/projects/myapp/tests", "nodeType": "dir" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6.2",
+      "title": "Setting up a project",
+      "lesson": "A common first step for any project is creating a predictable directory structure and a few starting files:\n\n```\nmyapp/\n  src/\n    main.sh\n  tests/\n    test-main.sh\n  README.md\n```\n\nYou already know all the commands for this. The only new skill is doing them in the right order — you can't `touch` a file inside a directory that doesn't exist yet.",
+      "example": "$ mkdir -p myapp/src myapp/tests\n$ touch myapp/README.md myapp/src/main.sh",
+      "challenge": {
+        "instruction": "Inside `/home/user/projects/myapp`, create: `README.md` at the top level, `src/main.sh`, and `tests/test-main.sh`.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "exists", "path": "/home/user/projects/myapp/README.md", "nodeType": "file" },
+            { "type": "exists", "path": "/home/user/projects/myapp/src/main.sh", "nodeType": "file" },
+            { "type": "exists", "path": "/home/user/projects/myapp/tests/test-main.sh", "nodeType": "file" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6.3",
+      "title": "Cleaning up and archiving",
+      "lesson": "Projects accumulate clutter — duplicate files, empty directories, temporary files. A tidy structure is easier to navigate and easier to grep.\n\nA typical cleanup sequence:\n\n```\nfind . -name '*.tmp'       # find the clutter\nrm <whatever-find-found>   # remove it\ncp -r project project-v1   # archive the current state\n```",
+      "example": "$ find /home/user -name '*.txt'\n/home/user/notes.txt\n$ cp notes.txt Documents/notes-archived.txt",
+      "challenge": {
+        "instruction": "Archive your work: copy the entire `projects` directory to `projects-v1` in your home directory, then verify the copy exists.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "exists", "path": "/home/user/projects-v1", "nodeType": "dir" },
+            { "type": "exists", "path": "/home/user/projects-v1/myapp", "nodeType": "dir" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6.4",
+      "title": "FINAL CHECKPOINT",
+      "isCheckpoint": true,
+      "lesson": "This is the full course checkpoint. You'll use every command taught across all six units:\n\n`pwd` `ls` `ls -a` `cd` `mkdir` `touch` `cat` `rm` `rm -r` `echo` `whoami` `cp` `mv` `find` `grep`\n\nThere's no one right sequence. Explore, inspect, and build.",
+      "example": "",
+      "challenge": {
+        "instruction": "Complete this multi-step task: (1) Navigate to `/home/user`. (2) Create a directory called `capstone`. (3) Inside `capstone`, create a file called `summary.txt`. (4) Copy `notes.txt` into `capstone/notes-copy.txt`. (5) Find all `.txt` files under `/home/user`.",
+        "validate": {
+          "type": "sequence",
+          "steps": [
+            { "type": "cwd", "path": "/home/user" },
+            { "type": "exists", "path": "/home/user/capstone", "nodeType": "dir" },
+            { "type": "exists", "path": "/home/user/capstone/summary.txt", "nodeType": "file" },
+            { "type": "exists", "path": "/home/user/capstone/notes-copy.txt", "nodeType": "file" },
+            { "type": "command", "expected": ["find /home/user -name '*.txt'", "find /home/user -name \"*.txt\"", "find . -name '*.txt'", "find . -name \"*.txt\""] }
+          ]
+        }
+      }
+    }
+  ]
+}
