@@ -41,3 +41,4 @@ export function setMode(next) {
 export function toggleMode() {
   setMode(mode === "terminal" ? "navigate" : "terminal");
 }
+
