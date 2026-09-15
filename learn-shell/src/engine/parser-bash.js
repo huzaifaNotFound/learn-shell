@@ -513,3 +513,4 @@ function runGrep(args, state) {
   return { output: lines.join('\n'), newState: state };
 }
 
+ 
