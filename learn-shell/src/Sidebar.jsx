@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronUp, ChevronDown, Lock, Play, Flag } from "lucide-react";
-import { useMode } from "./modeStore";
+import { useMode, setMode } from "./modeStore";
 import {
   useCourseState,
   buildSections,
@@ -257,6 +257,7 @@ export default function CourseSidebar() {
           const level = section.levels[item.levelIndex];
           if (!level.locked) {
             setActiveLesson(level.unitIndex, level.levelIndex);
+            setMode("terminal");
           }
         }
       }
