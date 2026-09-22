@@ -7,10 +7,7 @@ import {
   setActiveLesson,
 } from "./store/courseStore";
 
-// ─── Nav-list helpers ───────────────────────────────────────────────────────
 
-// Flattens sections + (only currently open) lessons into the ordered list
-// that ↑ / ↓ walk through in navigate mode.
 function buildNavItems(sections, openSections) {
   const items = [];
   sections.forEach((section, sectionIndex) => {
@@ -29,8 +26,6 @@ function itemKey(item) {
     ? `s-${item.sectionIndex}`
     : `l-${item.sectionIndex}-${item.levelIndex}`;
 }
-
-// ─── Sub-components ─────────────────────────────────────────────────────────
 
 function Kbd({ children }) {
   return (
@@ -88,12 +83,10 @@ function CourseSection({ section, sectionIndex, isOpen, focusedItem, registerRef
         className={`w-full h-17 px-8 flex items-center text-left select-none
           ${isSectionFocused ? "bg-border/50 ring-1 ring-inset ring-accent-teal" : ""}`}
       >
-        {/* Section number */}
         <span className="w-12 shrink-0 font-mono text-base text-text-primary">
           {section.number}
         </span>
 
-        {/* Title */}
         <span
           className={`flex-1 font-mono text-base ${
             section.locked ? "text-text-muted" : "text-text-primary"
@@ -102,7 +95,6 @@ function CourseSection({ section, sectionIndex, isOpen, focusedItem, registerRef
           {section.title}
         </span>
 
-        {/* Progress */}
         <div className="flex items-center gap-2">
           {section.locked ? (
             <>
@@ -145,7 +137,6 @@ function CourseSection({ section, sectionIndex, isOpen, focusedItem, registerRef
                   ${isFocused ? "ring-1 ring-inset ring-accent-teal" : ""}
                   ${level.locked ? "opacity-50" : ""}`}
               >
-                {/* Status icon */}
                 <div className="w-10 shrink-0 flex justify-center">
                   {level.isCheckpoint ? (
                     <Flag
@@ -167,12 +158,10 @@ function CourseSection({ section, sectionIndex, isOpen, focusedItem, registerRef
                   )}
                 </div>
 
-                {/* Level ID */}
                 <span className="w-12 shrink-0 text-[14px] text-text-muted font-sans">
                   {level.id}
                 </span>
 
-                {/* Level title */}
                 <span
                   className={`text-[15px] font-sans ${
                     level.locked ? "text-text-muted" : "text-text-primary"
@@ -189,14 +178,12 @@ function CourseSection({ section, sectionIndex, isOpen, focusedItem, registerRef
   );
 }
 
-// ─── Main export ─────────────────────────────────────────────────────────────
 
 export default function CourseSidebar() {
   const mode = useMode();
   const courseState = useCourseState();
   const sections = useMemo(() => buildSections(courseState), [courseState]);
 
-  // Overall progress for the header bar
   const totalLevels = sections.reduce((sum, s) => sum + s.total, 0);
   const doneLevels = sections.reduce((sum, s) => sum + s.completed, 0);
   const overallPct = totalLevels > 0 ? Math.round((doneLevels / totalLevels) * 100) : 0;
@@ -225,7 +212,6 @@ export default function CourseSidebar() {
     itemRefs.current[itemKey(item)]?.scrollIntoView({ block: "nearest" });
   }, [focusedIndex, mode, navItems]);
 
-  // ↑ / ↓ / Enter keyboard handling in navigate mode.
   useEffect(() => {
     if (mode !== "navigate") return;
 
@@ -252,7 +238,6 @@ export default function CourseSidebar() {
             return next;
           });
         } else {
-          // Lesson selected — notify the store so the terminal banner updates.
           const section = sections[item.sectionIndex];
           const level = section.levels[item.levelIndex];
           if (!level.locked) {
@@ -275,7 +260,6 @@ export default function CourseSidebar() {
 
   return (
     <div className="h-screen w-1/3 min-w-100 bg-bg-surface border-l-2 border-border flex flex-col overflow-hidden relative">
-      {/* Header */}
       <div className="h-25.5 shrink-0 border-b-2 border-border w-full flex items-center justify-between px-8">
         <div className="flex flex-col gap-y-1">
           <h2 className="text-text-primary font-sans text-[21px] font-medium tracking-wide">
@@ -299,7 +283,6 @@ export default function CourseSidebar() {
         </div>
       </div>
 
-      {/* Scrollable lesson list */}
       <div
         role="listbox"
         aria-label="Course sections and lessons"

@@ -5,9 +5,6 @@ import { useMode, toggleMode } from "./modeStore";
 import { useCourseState, getActiveLevel, markLessonDone } from "./store/courseStore";
 import { checkChallenge } from "./engine/validator";
 
-// ─── Lesson Banner ────────────────────────────────────────────────────────────
-// Shown above the prompt line when a lesson is active. Keyboard shortcut `?`
-// toggles it open/closed without losing the current lesson selection.
 
 function LessonBanner({ level, visible }) {
   if (!level || !visible) return null;
@@ -29,19 +26,16 @@ function LessonBanner({ level, visible }) {
         <span className="ml-auto text-text-muted text-xs font-mono">? to hide</span>
       </div>
 
-      {/* Lesson prose */}
       <div className="px-4 pt-3 pb-1 text-text-muted leading-relaxed whitespace-pre-wrap">
         {level.lesson}
       </div>
 
-      {/* Example block */}
       {level.example && level.example.trim() !== "" && (
         <div className="mx-4 mb-3 mt-2 px-3 py-2 bg-bg-inset rounded font-mono text-xs text-accent-amber whitespace-pre">
           {level.example}
         </div>
       )}
 
-      {/* Challenge strip */}
       <div className="flex items-start gap-3 px-4 py-3 bg-bg-surface/60 border-t border-border">
         <span className="shrink-0 text-accent-amber font-mono text-xs uppercase tracking-widest pt-0.5">
           Challenge
@@ -54,7 +48,6 @@ function LessonBanner({ level, visible }) {
   );
 }
 
-// ─── Terminal ─────────────────────────────────────────────────────────────────
 
 function Terminal() {
   const mode = useMode();
@@ -64,10 +57,9 @@ function Terminal() {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [input, setInput] = useState("");
   const [fsState, setFsState] = useState(() => createFilesystem());
-  const [history, setHistory] = useState([]); // past { prompt, command, output } entries
+  const [history, setHistory] = useState([]);
   const [sequenceStep, setSequenceStep] = useState(0);
 
-  // Command-history recall (↑ / ↓)
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(null);
   const [draft, setDraft] = useState("");
@@ -75,7 +67,6 @@ function Terminal() {
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // Show the banner again whenever a new lesson is selected.
   useEffect(() => {
     if (activeLevel) {
       setBannerVisible(true);
@@ -102,7 +93,6 @@ function Terminal() {
 
       setFsState(newState);
 
-      // Validate challenge
       const valResult = checkChallenge(input, newState, activeLevel, sequenceStep);
       setSequenceStep(valResult.nextStep);
 
@@ -145,15 +135,12 @@ function Terminal() {
     }
   }
 
-  // Esc toggles terminal ↔ navigate mode (global — fires even when input is blurred).
   useEffect(() => {
     function handleGlobalKeyDown(e) {
       if (e.key === "Escape") {
         e.preventDefault();
         toggleMode();
       }
-      // `?` toggles the lesson banner — only when the user is NOT actively
-      // typing into the hidden input (to avoid eating the ? character mid-command).
       if (
         e.key === "?" &&
         mode === "terminal" &&
@@ -168,14 +155,12 @@ function Terminal() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, [mode, activeLevel]);
 
-  // Re-focus the input whenever we return to terminal mode.
   useEffect(() => {
     if (mode === "terminal") {
       inputRef.current?.focus();
     }
   }, [mode]);
 
-  // Auto-scroll to the bottom when history grows.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
   }, [history]);
@@ -186,7 +171,7 @@ function Terminal() {
         id="terminalWindow"
         className="border border-border h-full w-full rounded-xl overflow-clip flex flex-col"
       >
-        {/* Top bar */}
+
         <div className="h-12 w-full bg-bg-surface/75 border-b border-border rounded-t-xl flex items-center shrink-0">
           <div className="h-full rounded-tl-xl flex items-center pl-4 w-40 bg-border/50">
             <svg
@@ -215,14 +200,13 @@ function Terminal() {
           </span>
         </div>
 
-        {/* Scrollback + prompt area */}
+
         <div
           className={`p-5 pl-6 font-mono text-2xl tracking-wide overflow-y-auto flex-1 transition-opacity duration-150 ${
             mode !== "terminal" ? "opacity-60" : ""
           }`}
           onClick={() => mode === "terminal" && inputRef.current?.focus()}
         >
-          {/* Welcome message — shown only when no lesson is active */}
           {!activeLevel && (
             <div className="text-accent-amber mb-6 whitespace-pre">
 {`    __                          _____ __         ____
@@ -255,10 +239,8 @@ function Terminal() {
             </div>
           ))}
 
-          {/* Lesson banner — sits between history and the live prompt */}
           <LessonBanner level={activeLevel} visible={bannerVisible} />
 
-          {/* Live prompt */}
           <div className="relative w-[calc(100%-10px)] leading-8 whitespace-pre-wrap break-all">
             <span className="mr-1 text-accent-amber">
               learnshell@shellpath:{cwdToString(fsState.cwd)}${" "}

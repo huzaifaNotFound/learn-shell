@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function TerminalIcon() {
   return (
@@ -51,7 +50,6 @@ function InfoIcon() {
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function WelcomeScreen() {
   const [visible, setVisible] = useState(true);
@@ -74,14 +72,11 @@ export default function WelcomeScreen() {
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 z-50 bg-bg-primary/70 backdrop-blur-[2px]" />
 
-      {/* Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="w-[740px] border border-border rounded-xl bg-bg-surface shadow-2xl overflow-hidden">
+        <div className="w-185 border border-border rounded-xl bg-bg-surface shadow-2xl overflow-hidden">
 
-          {/* Top chrome bar */}
           <div className="h-11 bg-bg-inset border-b border-border flex items-center px-5 shrink-0">
             <div className="flex gap-2">
               <span className="w-3 h-3 rounded-full bg-border" />
@@ -92,11 +87,9 @@ export default function WelcomeScreen() {
               <img src="/logo.png" alt="LearnShell" className="h-6 w-6 object-contain" />
               <span className="font-mono text-[13px] text-text-muted">learn-shell</span>
             </div>
-            {/* spacer to balance the dots */}
-            <div className="w-[52px]" />
+            <div className="w-13" />
           </div>
 
-          {/* Tagline row */}
           <div className="flex items-start justify-between px-7 pt-5 font-mono text-[13px] text-text-muted">
             <div className="leading-[1.8]">
               <div><span className="text-accent-amber">~/</span>  Learn by doing.</div>
@@ -105,7 +98,6 @@ export default function WelcomeScreen() {
             <span className="text-text-muted">v1.0.0</span>
           </div>
 
-          {/* ASCII logo */}
           <div className="px-7 pt-6 pb-0 flex justify-center overflow-hidden mb-10">
             <pre className="text-accent-amber text-[13.5px] leading-[1.4] select-none font-mono text-center">{`    __                          _____ __         ____
    / /   ___  ____ __________  / ___// /_  ___  / / /
@@ -114,7 +106,6 @@ export default function WelcomeScreen() {
 /_____/\\___/\\__,_/_/  /_/ /_//____/_/ /_/\\___/_/_/   `}</pre>
           </div>
 
-          {/* Three feature columns */}
           <div className="grid grid-cols-3 border-t border-border">
             <div className="flex flex-col items-center text-center px-8 py-8 border-r border-border">
               <TerminalIcon />
@@ -147,10 +138,8 @@ export default function WelcomeScreen() {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-border" />
 
-          {/* Enter button */}
           <div className="flex justify-center py-6">
             <div className="flex items-center gap-3 border border-accent-amber rounded-lg px-12 py-3.5 font-mono text-[15px] text-text-muted">
               <span className="text-accent-amber text-[18px]">›</span>
@@ -158,7 +147,6 @@ export default function WelcomeScreen() {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="border-t border-border flex items-center justify-between px-7 py-3.5 font-mono text-[12px] text-text-muted">
             <div className="flex items-center gap-2">
               <InfoIcon />
@@ -178,3 +166,4 @@ export default function WelcomeScreen() {
     </>
   );
 }
+

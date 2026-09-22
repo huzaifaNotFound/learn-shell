@@ -1,12 +1,4 @@
-// src/engine/parser-bash.js
-//
-// This is the part that actually understands bash commands. `run()`
-// takes a typed-in command string plus the current filesystem state,
-// and returns what should be printed, plus the (possibly updated) state.
-//
-// Nothing in this file knows about React or the DOM — it's plain JS.
-// That's exactly why it's easy to test on its own (Stage 3) and reuse
-// later for cmd/PowerShell (Stage 12), which just swap this file out.
+
 
 import {
   resolvePath,
@@ -24,7 +16,6 @@ export function run(input, state) {
     return { output: '', newState: state };
   }
 
-  // Quote-aware tokeniser so `find . -name '*.txt'` doesn't get mangled.
   const args = tokenise(trimmed);
   const [command, ...rest] = args;
 
@@ -67,8 +58,6 @@ export function run(input, state) {
   }
 }
 
-// Splits on whitespace while respecting single- and double-quoted tokens.
-// 'find . -name "*.txt"' → ['find', '.', '-name', '*.txt']
 function tokenise(input) {
   const tokens = [];
   let current = '';
@@ -90,10 +79,6 @@ function tokenise(input) {
   return tokens;
 }
 
-// Small helper: real coreutils commands (cat, mkdir, touch, rm...) tend to
-// follow their error with a "Try 'X --help' for more information." line.
-// Reusing it here means every command's "you forgot the argument" error
-// looks like the real thing instead of a generic message.
 function missingOperand(command, detail) {
   return `${command}: ${detail}\nTry '${command} --help' for more information.`;
 }
@@ -103,9 +88,6 @@ function runPwd(state) {
 }
 
 function runLs(args, state) {
-  // Flags and the (optional) path argument can come in any order, e.g.
-  // `ls -a projects` or `ls projects -a` — so pull the path out as
-  // "whichever arg doesn't start with a dash" rather than assuming position.
   const showHidden = args.some((a) => a.startsWith('-') && a.includes('a'));
   const target = args.find((a) => !a.startsWith('-'));
 
@@ -120,8 +102,6 @@ function runLs(args, state) {
   }
 
   if (node.type !== 'dir') {
-    // Real `ls` on a single file just echoes its name back — it doesn't
-    // print the file's contents (that's what `cat` is for).
     return { output: target, newState: state };
   }
 
@@ -142,7 +122,6 @@ function runCd(args, state) {
   const target = args[0];
 
   if (!target || target === '~') {
-    // Plain "cd" (or "cd ~") with no path goes back to the home directory.
     return { output: '', newState: { ...state, cwd: ['home', 'user'] } };
   }
 
@@ -167,9 +146,6 @@ function runCat(args, state) {
     return { output: missingOperand('cat', 'missing operand'), newState: state };
   }
 
-  // Real `cat` accepts multiple files, prints one after another, and
-  // keeps going (printing an error line in place) even if one of them
-  // is missing — it doesn't stop at the first problem.
   const lines = [];
   for (const target of args) {
     const segments = resolvePath(state, target);
@@ -180,8 +156,6 @@ function runCat(args, state) {
     } else if (node.type === 'dir') {
       lines.push(`cat: ${target}: Is a directory`);
     } else {
-      // Strip one trailing newline for display, the same way a terminal
-      // doesn't show a blank extra line after a file that ends in "\n".
       lines.push(node.content.replace(/\n$/, ''));
     }
   }
@@ -204,9 +178,6 @@ function runMkdir(args, state) {
     const parentNode = getNodeAt(newState, parentSegments);
 
     if (!parentNode || parentNode.type !== 'dir') {
-      // Covers both "the parent path doesn't exist at all" and
-      // "part of the path is actually a file, not a directory" —
-      // real mkdir reports both as the same error.
       errors.push(`mkdir: cannot create directory '${target}': No such file or directory`);
       continue;
     }
@@ -242,8 +213,6 @@ function runTouch(args, state) {
     if (!hasChild(parentNode, name)) {
       newState = setNodeAt(newState, segments, { type: 'file', content: '' });
     }
-    // If it already exists, real touch just updates its modified time —
-    // we're not tracking timestamps yet, so there's nothing to do.
   }
 
   return { output: errors.join('\n'), newState };
@@ -280,8 +249,6 @@ function runRm(args, state) {
 }
 
 function runEcho(args, state) {
-  // No variable expansion or quote handling yet — just prints its
-  // arguments back, space-separated, the way `echo` does at its simplest.
   return { output: args.join(' '), newState: state };
 }
 
@@ -309,7 +276,6 @@ function runHelp(state) {
   return { output: cmds.join('\n'), newState: state };
 }
 
-// ─── cp ───────────────────────────────────────────────────────────────────
 
 function runCp(args, state) {
   const recursive = args.some((a) => a === '-r' || a === '-R');
@@ -333,7 +299,6 @@ function runCp(args, state) {
   const dstSegments = resolvePath(state, dst);
   const dstNode = getNodeAt(state, dstSegments);
 
-  // If destination is an existing directory, copy the source inside it.
   let finalSegments = dstSegments;
   if (dstNode?.type === 'dir') {
     finalSegments = [...dstSegments, srcSegments.at(-1)];
@@ -358,7 +323,6 @@ function deepCloneNode(node) {
   };
 }
 
-// ─── mv ───────────────────────────────────────────────────────────────────
 
 function runMv(args, state) {
   const nonFlags = args.filter((a) => !a.startsWith('-'));
@@ -378,13 +342,11 @@ function runMv(args, state) {
   const dstSegments = resolvePath(state, dst);
   const dstNode = getNodeAt(state, dstSegments);
 
-  // If destination is an existing directory, move source INTO it.
   let finalSegments = dstSegments;
   if (dstNode?.type === 'dir') {
     finalSegments = [...dstSegments, srcSegments.at(-1)];
   }
 
-  // Guard: can't move a directory into itself.
   const srcPath = '/' + srcSegments.join('/');
   const dstPath = '/' + finalSegments.join('/');
   if (dstPath === srcPath || dstPath.startsWith(srcPath + '/')) {
@@ -402,11 +364,8 @@ function runMv(args, state) {
   return { output: '', newState };
 }
 
-// ─── find ─────────────────────────────────────────────────────────────────
 
 function runFind(args, state) {
-  // find [startPath] [-name glob] [-type f|d]
-  // Identify named-flag values first so they aren't treated as paths.
   const namedFlagValues = new Set();
   const flagsWithArgs = ['-name', '-type'];
   flagsWithArgs.forEach((flag) => {
@@ -420,7 +379,7 @@ function runFind(args, state) {
   const nameIdx = args.indexOf('-name');
   const nameGlob = nameIdx !== -1 ? args[nameIdx + 1] : null;
   const typeIdx = args.indexOf('-type');
-  const typeFilter = typeIdx !== -1 ? args[typeIdx + 1] : null; // 'f' or 'd'
+  const typeFilter = typeIdx !== -1 ? args[typeIdx + 1] : null; 
 
   const startSegments = resolvePath(state, startPath);
   const startNode = getNodeAt(state, startSegments);
@@ -435,9 +394,9 @@ function runFind(args, state) {
   function walk(node, currentPath) {
     const name = currentPath.split('/').filter(Boolean).at(-1) ?? '/';
 
-    // Type filter
+    
     const typeOk = !typeFilter || (typeFilter === 'f' && node.type === 'file') || (typeFilter === 'd' && node.type === 'dir');
-    // Name glob filter
+
     const nameOk = !nameGlob || globMatch(name, nameGlob);
 
     if (typeOk && nameOk) results.push(currentPath || '/');
@@ -453,16 +412,15 @@ function runFind(args, state) {
   return { output: results.join('\n'), newState: state };
 }
 
-// Converts a simple glob pattern (* = any chars, ? = one char) to a regex.
+
 function globMatch(name, pattern) {
   const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&') // escape regex specials
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&') 
     .replace(/\*/g, '.*')
     .replace(/\?/g, '.');
   return new RegExp(`^${escaped}$`).test(name);
 }
 
-// ─── grep ─────────────────────────────────────────────────────────────────
 
 function runGrep(args, state) {
   const recursive = args.some((a) => a === '-r' || a === '-R');
