@@ -82,10 +82,18 @@ export default function WelcomeScreen() {
         <div className="w-[740px] border border-border rounded-xl bg-bg-surface shadow-2xl overflow-hidden">
 
           {/* Top chrome bar */}
-          <div className="h-11 bg-bg-inset border-b border-border flex items-center px-5 gap-2 shrink-0">
-            <span className="w-3 h-3 rounded-full bg-border" />
-            <span className="w-3 h-3 rounded-full bg-border" />
-            <span className="w-3 h-3 rounded-full bg-border" />
+          <div className="h-11 bg-bg-inset border-b border-border flex items-center px-5 shrink-0">
+            <div className="flex gap-2">
+              <span className="w-3 h-3 rounded-full bg-border" />
+              <span className="w-3 h-3 rounded-full bg-border" />
+              <span className="w-3 h-3 rounded-full bg-border" />
+            </div>
+            <div className="flex-1 flex items-center justify-center gap-2">
+              <img src="/logo.png" alt="LearnShell" className="h-6 w-6 object-contain" />
+              <span className="font-mono text-[13px] text-text-muted">learn-shell</span>
+            </div>
+            {/* spacer to balance the dots */}
+            <div className="w-[52px]" />
           </div>
 
           {/* Tagline row */}
