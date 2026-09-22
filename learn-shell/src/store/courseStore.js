@@ -8,12 +8,32 @@ import unit4 from '../content/bash/unit-4.json';
 import unit5 from '../content/bash/unit-5.json';
 import unit6 from '../content/bash/unit-6.json';
 
-function hydrateUnit(rawUnit) {
+const STORAGE_KEY = "learn_shell_progress";
+
+function loadProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveProgress(units) {
+  const progress = {};
+  units.forEach(u => {
+    u.levels.forEach(l => {
+      if (l.done) progress[l.id] = true;
+    });
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function hydrateUnit(rawUnit, progress) {
   return {
     ...rawUnit,
     levels: rawUnit.levels.map((level) => ({
       ...level,
-      done: false,
+      done: progress[level.id] === true,
     })),
   };
 }
@@ -23,7 +43,8 @@ function countDone(unit) {
 }
 
 function buildInitialState() {
-  const units = [unit1, unit2, unit3, unit4, unit5, unit6].map(hydrateUnit);
+  const progress = loadProgress();
+  const units = [unit1, unit2, unit3, unit4, unit5, unit6].map(u => hydrateUnit(u, progress));
   return {
     units,
     activeLesson: null,
@@ -31,6 +52,22 @@ function buildInitialState() {
 }
 
 let state = buildInitialState();
+
+window.__completeAll = function() {
+  const units = state.units.map(unit => ({
+    ...unit,
+    levels: unit.levels.map(level => ({ ...level, done: true }))
+  }));
+  state = { ...state, units, activeLesson: null };
+  saveProgress(units);
+  notify();
+};
+
+export function resetProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+  state = buildInitialState();
+  notify();
+}
 
 
 const listeners = new Set();
@@ -82,6 +119,7 @@ export function markLessonDone(unitIndex, levelIndex) {
   }
 
   state = { ...state, units, activeLesson: nextActive };
+  saveProgress(units);
   notify();
 }
 

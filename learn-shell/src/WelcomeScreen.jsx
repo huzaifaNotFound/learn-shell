@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useCourseState, buildSections } from "./store/courseStore";
 
 function TerminalIcon() {
   return (
@@ -52,7 +52,24 @@ function InfoIcon() {
 
 
 export default function WelcomeScreen() {
-  const [visible, setVisible] = useState(true);
+  const courseState = useCourseState();
+  const sections = useMemo(() => buildSections(courseState), [courseState]);
+  
+  const totalLevels = sections.reduce((sum, s) => sum + s.total, 0);
+  const doneLevels = sections.reduce((sum, s) => sum + s.completed, 0);
+  const isFinished = totalLevels > 0 && doneLevels === totalLevels;
+
+  // Start hidden if the course is already fully completed
+  const [visible, setVisible] = useState(() => !isFinished);
+  const wasFinishedRef = useRef(isFinished);
+
+  useEffect(() => {
+    // If user resets progress, bring the welcome screen back
+    if (wasFinishedRef.current && !isFinished) {
+      setVisible(true);
+    }
+    wasFinishedRef.current = isFinished;
+  }, [isFinished]);
 
   useEffect(() => {
     function handleKeyDown(e) {

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronUp, ChevronDown, Lock, Play, Flag } from "lucide-react";
+import { Check, ChevronUp, ChevronDown, Lock, Play, Flag, RotateCcw } from "lucide-react";
 import { useMode, setMode } from "./modeStore";
 import {
   useCourseState,
   buildSections,
   setActiveLesson,
+  resetProgress
 } from "./store/courseStore";
 
 
@@ -245,6 +246,11 @@ export default function CourseSidebar() {
             setMode("terminal");
           }
         }
+      } else if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        if (window.confirm("Are you sure you want to reset all your progress?")) {
+          resetProgress();
+        }
       }
     }
 
@@ -271,9 +277,16 @@ export default function CourseSidebar() {
         </div>
 
         <div className="flex flex-col items-end gap-2">
-          <span className="text-text-muted font-sans text-[14px]">
-            {overallPct}% completed
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-text-muted hover:text-accent-error transition-colors">
+              <RotateCcw size={14} />
+              <span className="text-[13px] font-sans">Reset</span>
+              <Kbd>R</Kbd>
+            </div>
+            <span className="text-text-muted font-sans text-[14px]">
+              {overallPct}% completed
+            </span>
+          </div>
           <div className="w-26 h-2 bg-bg-inset/60 rounded-full overflow-hidden">
             <div
               className="h-full bg-accent-success rounded-full transition-all duration-500"
