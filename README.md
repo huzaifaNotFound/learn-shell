@@ -21,4 +21,4 @@ After learning a concept, you can immediately use it in the terminal to solve a 
 The entire website is designed to be operated **using only the keyboard**.
 Navigation, lessons, terminal interaction, and challenges are built around keyboard controls, making the interface fast and accessible without relying on a mouse.
 
-#LearnShell currently only supports bash, but in future more shell scripts will be added.
+##LearnShell currently only supports bash, but in future more shell scripts will be added.
