@@ -28,8 +28,18 @@
   --animate-blink: blink 1s step-start infinite;
 }
 
-html { 
-  font-size: 16px;  
+html {
+  font-size: calc(16px * var(--ui-scale));
+}
+
+@media (max-width: 1600px), (max-height: 900px) {
+  :root { --ui-scale: 0.9; }
+}
+@media (max-width: 1400px), (max-height: 780px) {
+  :root { --ui-scale: 0.8; }
+}
+@media (max-width: 1200px), (max-height: 650px) {
+  :root { --ui-scale: 0.7; }
 }
 
 @keyframes blink {
