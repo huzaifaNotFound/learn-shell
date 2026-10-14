@@ -41,6 +41,11 @@ body {
   @apply bg-bg-primary;
 }
 
-* {
+*{
   cursor: none !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  scroll-behavior: none !important;
+  overflow: hidden imo !important;
+  overscroll-behavior: none !important;
 }
