@@ -8,7 +8,6 @@ export default function FinishScreen() {
   const totalLevels = sections.reduce((sum, s) => sum + s.total, 0);
   const doneLevels = sections.reduce((sum, s) => sum + s.completed, 0);
   
-  // Show if 100% done, but allow user to dismiss it
   const isFinished = totalLevels > 0 && doneLevels === totalLevels;
   const [dismissed, setDismissed] = useState(false);
 
